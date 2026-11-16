@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Мой маршрут лечения и вопросы к врачу</title>
+<style>
+:root{--acc:#7a3a66;--ink:#2b2b2b;--muted:#6b6b6b;--line:#e3cfdb;--soft:#f8eef4;--bg:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:#f3eef1;color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.page{max-width:780px;margin:0 auto;background:var(--bg);padding:28px 22px 36px}
+.bar{position:sticky;top:0;z-index:2;background:var(--acc);color:#fff;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 16px}
+.bar span{font-size:14px;line-height:1.3}
+.bar button{font:600 15px inherit;font-family:inherit;border:none;border-radius:10px;background:#fff;color:var(--acc);padding:10px 14px;white-space:nowrap;cursor:pointer}
+header{border-bottom:2px solid var(--acc);padding-bottom:12px;margin-bottom:18px}
+.brand{color:var(--acc);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+h1{font-size:24px;line-height:1.25;margin:6px 0 10px;color:var(--acc)}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--ink)}
+h2{font-size:17px;margin:22px 0 8px;color:var(--acc)}
+.step{border-left:3px solid var(--acc);padding:2px 0 2px 12px;margin:10px 0 12px;break-inside:avoid}
+.step b{display:block}
+.step i{color:var(--muted);font-size:13px}
+ul{margin:4px 0 0;padding-left:20px}
+li{margin:3px 0}
+.box{border-radius:12px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.warn{background:#fdf1ec;border:1px solid #f0c9b8}
+.info{background:#f1f5fb;border:1px solid #cdd9ec}
+.ok{background:#eff8f1;border:1px solid #c6e4cd}
+ol.q{padding-left:22px}
+ol.q li{margin:10px 0;break-inside:avoid}
+ol.q .ans{display:block;border-bottom:1px solid #bbb;height:22px;margin-top:4px}
+ol.q .ans+.ans{margin-top:0}
+.book{margin-top:24px;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;break-inside:avoid}
+.book h3{margin:0 0 6px;color:var(--acc);font-size:16px}
+.book a{color:var(--acc);font-weight:600}
+.disc{margin-top:20px;font-size:12px;color:var(--muted)}
+.empty{padding:40px 10px;text-align:center;color:var(--muted)}
+@media (max-width:520px){.page{padding:20px 16px 30px}h1{font-size:21px}}
+@media print{
+  body{background:#fff}
+  .bar{display:none}
+  .page{max-width:none;padding:0}
+  @page{margin:14mm 14mm 16mm}
+  a{text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="bar"><span>Сохраните как PDF или распечатайте и возьмите на приём</span><button type="button" onclick="window.print()">📄 Сохранить PDF</button></div>
+<main class="page" id="page"><div class="empty">Загрузка…</div></main>
+<script>
+(function(){
+  var el=document.getElementById('page');
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function list(a){return '<ul>'+a.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
+  var D=null;
+  try{
+    var m=location.hash.match(/d=([^&]+)/);
+    if(m){var b=m[1].replace(/-/g,'+').replace(/_/g,'/');while(b.length%4)b+='=';D=JSON.parse(decodeURIComponent(escape(atob(b))))}
+  }catch(e){D=null}
+  if(!D){el.innerHTML='<div class="empty">Не удалось открыть маршрут. Вернитесь в бот и нажмите кнопку «Сохранить маршрут и вопросы врачу» ещё раз.</div>';return}
+  var h='';
+  h+='<header><div class="brand">Мой подтип РМЖ · по рекомендациям RUSSCO 2025</div>';
+  h+='<h1>'+(D.m==='plan'?'Мой маршрут лечения и вопросы к врачу':'Проверка моего лечения и вопросы к врачу')+'</h1>';
+  h+='<div class="meta">';
+  if(D.sub)h+='<span>Подтип: <b>'+esc(D.sub)+'</b></span>';
+  if(D.stg)h+='<span>Стадия: <b>'+esc(D.stg)+'</b></span>';
+  if(D.d)h+='<span>Дата: <b>'+esc(D.d)+'</b></span>';
+  h+='</div></header>';
+  if(D.st&&D.st.length){
+    h+='<h2>🗺 Маршрут лечения</h2>';
+    D.st.forEach(function(s,i){h+='<div class="step"><b>'+(i+1)+'. '+esc(s.t)+'</b>'+(s.tm?'<i>'+esc(s.tm)+'</i>':'')+(s.i&&s.i.length?list(s.i):'')+'</div>'});
+  }
+  if(D.w&&D.w.length)h+='<h2>⚠️ Обсудить с онкологом</h2><div class="box warn">'+list(D.w)+'</div>';
+  if(D.n&&D.n.length)h+='<h2>ℹ️ Стоит уточнить</h2><div class="box info">'+list(D.n)+'</div>';
+  if(D.o&&D.o.length)h+='<h2>✅ Совпадает с клиническими рекомендациями</h2><div class="box ok">'+list(D.o)+'</div>';
+  if(D.q&&D.q.length){
+    h+='<h2>❓ Вопросы к онкологу</h2><ol class="q">';
+    D.q.forEach(function(q){h+='<li>'+esc(q)+'<span class="ans"></span><span class="ans"></span></li>'});
+    h+='</ol>';
+  }
+  h+='<div class="book"><h3>📖 Ответы на эти вопросы — в «Индивидуальной книге»</h3>';
+  h+='<div>В книге о вашем подтипе на эти вопросы есть подробные ответы. Внутри — что означает ваш диагноз и почему лечение выбирают именно так, что будет на каждом этапе, как справляться с побочными эффектами, и чек-листы к каждому этапу: что подготовить, что взять с собой, за чем следить.</div>';
+  h+='<div style="margin-top:6px">Получить книгу: <a href="https://t.me/podtip_rmzh_bot">t.me/podtip_rmzh_bot</a></div></div>';
+  h+='<div class="disc">Это информация, а не диагноз и не назначение. Решение о лечении принимает ваш онколог. Автор бота — Е. А. Маслюкова, онколог-радиотерапевт, д.м.н.</div>';
+  el.innerHTML=h;
+})();
+</script>
+</body>
+</html>
